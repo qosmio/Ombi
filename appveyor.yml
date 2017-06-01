@@ -18,8 +18,9 @@ before_build:
 - appveyor-retry npm install -g gulp
 - appveyor-retry npm install
 - gulp publish
+build_script:
+  dotnet build
 build:
-- dotnet build
   parallel: true
 after_build:
 - dotnet publish -c Release -r ubuntu.16.04-x64
