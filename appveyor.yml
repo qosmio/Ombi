@@ -1,69 +1,35 @@
 version: 3.0.{build}
+branches:
+  only:
+  - DotNetCore
+image: Visual Studio 2017
 configuration: Release
-os: Visual Studio 2017
 environment:
-  nodejs_version: "7.8.0"
-# Install scripts. (runs after repo cloning)
+  nodejs_version: 7.8.0
 install:
-  # Get the latest stable version of Node.js or io.js
-  - ps: Install-Product node $env:nodejs_version
+- ps: Install-Product node $env:nodejs_version
+cache: '%USERPROFILE%\.nuget\packages'
 before_build:
 - ps: .\BuildTask.ps1 -env "live"
 - cmd: cd src/ombi
 - node --version
 - appveyor-retry dotnet restore
 - appveyor-retry npm install bower -g
-- appveyor-retry npm install -g gulp 
+- appveyor-retry npm install -g gulp
 - appveyor-retry npm install
 - gulp publish
-build_script:
-- dotnet build
-#- dotnet test ./Ombi.Core.Tests/Ombi.Core.Tests.csproj
+build:
+  parallel: true
 after_build:
-- dotnet publish -c Release -r win10-x64
-- dotnet publish -c Release -r osx.10.12-x64
-- dotnet publish -c Release -r ubuntu.16.10-x64
-- dotnet publish -c Release -r debian.8-x64
-- dotnet publish -c Release -r centos.7-x64
+- dotnet publish -c Release -r ubuntu.16.04-x64
 - cmd: >-
-    7z a Ombi_windows.zip %APPVEYOR_BUILD_FOLDER%\src\Ombi\bin\Release\netcoreapp1.1\win10-x64\publish
-    
-    
-    7z a Ombi_osx.zip %APPVEYOR_BUILD_FOLDER%\src\Ombi\bin\Release\netcoreapp1.1\osx.10.12-x64\publish
-    
-    
-    7z a Ombi_ubuntu.zip %APPVEYOR_BUILD_FOLDER%\src\Ombi\bin\Release\netcoreapp1.1\ubuntu.16.10-x64\publish
-    
-    
-    7z a Ombi_debian.zip %APPVEYOR_BUILD_FOLDER%\src\Ombi\bin\Release\netcoreapp1.1\debian.8-x64\publish
-    
-    
-    7z a Ombi_centos.zip %APPVEYOR_BUILD_FOLDER%\src\Ombi\bin\Release\netcoreapp1.1\centos.7-x64\publish
+    7z a Ombi_ubuntu.zip %APPVEYOR_BUILD_FOLDER%\src\Ombi\bin\Release\netcoreapp1.1\ubuntu.16.04-x64\publish
 
-    
-    appveyor PushArtifact Ombi_windows.zip
-    
-    
-    appveyor PushArtifact Ombi_osx.zip
-    
-    
     appveyor PushArtifact Ombi_ubuntu.zip
-    
-    
-    appveyor PushArtifact Ombi_debian.zip
-    
-    
-    appveyor PushArtifact Ombi_centos.zip
-    
-    
-
-cache:
-- '%USERPROFILE%\.nuget\packages'
 deploy:
 - provider: GitHub
   release: Ombi v$(appveyor_build_version)
-  auth_token:
-    secure: jDpp1/WUQl3uN41fNI3VeZoRZbDiDfs3GPQ1v+C5ZNE3cWdnUvuJfCCfUbYUV1Rp
+  auth_token: 8aef0140318039cd1b8aea9b1cccbf48536c9b59
   draft: true
   on:
-    branch: master
+    branch: DotNetCore
